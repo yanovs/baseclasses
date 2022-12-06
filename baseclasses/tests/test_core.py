@@ -25,7 +25,7 @@ def test_basic():
     with pytest.raises(TypeError):
         Parent()
     with pytest.raises(TypeError):
-        Parent(1, 2)
+        Parent(1, 2)  # noqa
     with pytest.raises(TypeError):
         Parent(x=1)
     with pytest.raises(TypeError):
