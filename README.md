@@ -1,6 +1,6 @@
 # baseclasses
 
-Dataclasses alternative (beta)
+Simple dataclasses alternative (beta)
 
 [![PyPI version](https://badge.fury.io/py/baseclasses.svg)](https://badge.fury.io/py/baseclasses)
 [![PyPI Supported Python Versions](https://img.shields.io/pypi/pyversions/baseclasses.svg)](https://pypi.python.org/pypi/baseclasses/)
@@ -9,7 +9,7 @@ Dataclasses alternative (beta)
 ## Quick Start
 
 There are a lot of reasons to use alternatives (including the built-in
-`dataclasses`), but if you want some no monkey-patched methods
+`dataclasses`), but if you want a library with no monkey-patched methods
 and some extra features (more coming soon!), you can give `baseclasses` a try.
 
 ```python
@@ -55,7 +55,11 @@ Like [dataclasses](https://docs.python.org/3/library/dataclasses.html), but:
 Like [dataclassy](https://github.com/biqqles/dataclassy) but:
 - Uses `metaclass` and simple inheritance over monkey-patched generated code
 
-Simpler than [attrs](https://github.com/python-attrs/attrs) and [pydantic](https://github.com/samuelcolvin/pydantic).
+There are others:
+- [attrs](https://github.com/python-attrs/attrs)
+- [pydantic](https://github.com/samuelcolvin/pydantic)
+- [traitlets](https://github.com/ipython/traitlets)
+- [param](https://param.holoviz.org/)
 
 Note: there are [perfectly valid reasons](https://peps.python.org/pep-0557/#rationale) for why the Python community
 decided to use generated code over simple inheritance--`baseclasses` is just an alternative that 
