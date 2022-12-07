@@ -1,12 +1,16 @@
 # baseclasses
 
-Dataclasses alternative
+Dataclasses alternative (beta)
 
 [![PyPI version](https://badge.fury.io/py/baseclasses.svg)](https://badge.fury.io/py/baseclasses)
 [![PyPI Supported Python Versions](https://img.shields.io/pypi/pyversions/baseclasses.svg)](https://pypi.python.org/pypi/baseclasses/)
 [![GitHub Actions (Tests)](https://github.com/yanovs/baseclasses/workflows/Test/badge.svg)](https://github.com/yanovs/baseclasses)
 
 ## Quick Start
+
+There are a lot of reasons to use alternatives (including the built-in
+`dataclasses`), but if you want some no monkey-patched methods
+and some extra features (more coming soon!), you can give `baseclasses` a try.
 
 ```python
 from typing import Dict, Optional
