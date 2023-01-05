@@ -107,13 +107,13 @@ def test_kwargs():
 
     dc_kwargs0 = DCKwargs(window=252)
     assert dc_kwargs0.window == 252
-    # Have to have 2 different com field:
+    # Have to have 2 different com fields:
     assert dc_kwargs0.com is None
     assert dc_kwargs0.effective_com == 252
 
     dc_kwargs1 = DCKwargs(window=252, com=181)
     assert dc_kwargs1.window == 252
-    # Have to have 2 different com field:
+    # Have to have 2 different com fields:
     assert dc_kwargs1.com == 181
     assert dc_kwargs1.effective_com == 181
 
