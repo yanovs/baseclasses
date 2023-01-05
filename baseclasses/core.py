@@ -17,6 +17,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    List,
     Mapping,
     MutableMapping,
     Optional,
@@ -39,7 +40,7 @@ MISSING = MissingType()
 # From dataclasses:
 # Since most per-field metadata will be unused, create an empty
 # read-only proxy that can be shared among all fields.
-_EMPTY_METADATA = types.MappingProxyType({})
+_EMPTY_METADATA: Mapping[str, Any] = types.MappingProxyType({})
 
 
 # TODO: Field.hash should return True if that's the default,
@@ -61,17 +62,17 @@ class Field:
     def __init__(
         self,
         default: Any = MISSING,
-        default_factory: Callable[..., Any] = MISSING,
+        default_factory: Callable[..., Any] = MISSING,  # type: ignore
         repr: bool = True,  # noqa
         str: bool = True,  # noqa
         hash: Optional[bool] = None,  # noqa
         compare: Optional[bool] = None,  # noqa
-        metadata: Optional[Mapping[str, Any]] = None,
+        metadata: Optional[Mapping[str, Any]] = None,  # pyright: ignore
     ):
         if default is not MISSING and default_factory is not MISSING:
             raise ValueError("Cannot set both default and default_factory")
-        self.name = None
-        self.type = None
+        self.name = None  # Will be set later
+        self.type = None  # Will be set later
         self.default = default
         self.default_factory = default_factory
         self.repr = repr
@@ -104,7 +105,7 @@ class InternalStateField(Field):
     def __init__(
         self,
         default: Any = MISSING,
-        default_factory: Callable[..., Any] = MISSING,
+        default_factory: Callable[..., Any] = MISSING,  # type: ignore
         metadata: Optional[Mapping[str, Any]] = None,
     ):
         # TODO: init=False
@@ -125,8 +126,8 @@ class FrozenInstanceError(Exception):
 
 
 class BaseMetaClass(type):
-    def __new__(
-        mcs,
+    def __new__(  # noqa: C901
+        mcs,  # pyright: ignore
         name: str,
         bases: Tuple[Type, ...],
         namespace: Dict[str, Any],
@@ -191,7 +192,7 @@ class BaseMetaClass(type):
         namespace["__frozen__"] = kwargs.get("frozen", frozen)
 
         # Signature for ipy help
-        signature_parameters = []
+        signature_parameters: List[inspect.Parameter] = []
         for field in fields:
             parameter_kwargs = {}
             if field.default is not MISSING:
@@ -199,6 +200,7 @@ class BaseMetaClass(type):
             if field.type is not None:
                 parameter_kwargs["annotation"] = field.type
 
+            assert field.name is not None  # For mypy
             parameter = inspect.Parameter(
                 field.name, inspect.Parameter.KEYWORD_ONLY, **parameter_kwargs
             )
@@ -211,7 +213,7 @@ class BaseMetaClass(type):
 
 
 class BaseClass(metaclass=BaseMetaClass):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):  # noqa: C901
         if args:
             if set(self.__class__.__bases__) - {BaseClass, FrozenBaseClass}:
                 raise TypeError(
@@ -220,26 +222,24 @@ class BaseClass(metaclass=BaseMetaClass):
                 )
 
             kwargs_from_args = {}
-            # noinspection PyUnresolvedReferences
-            for arg, field in zip(
-                args, self.__class__.__fields__
-            ):  # type: Field
-                if field.name in kwargs:
+            for arg, arg_field in zip(
+                args, self.__class__.__fields__  # type: ignore
+            ):
+                if arg_field.name in kwargs:
                     raise TypeError(
                         f"Cannot use both positional and "
-                        f"keyword args for {field.name!r}: "
+                        f"keyword args for {arg_field.name!r}: "
                         f"{self.__class__.__name__}"
                     )
 
-                kwargs_from_args[field.name] = arg
+                kwargs_from_args[arg_field.name] = arg
 
             kwargs_from_args.update(kwargs)
             kwargs = kwargs_from_args
 
         self.__pre_init__(kwargs)
 
-        # noinspection PyUnresolvedReferences
-        for field in self.__class__.__fields__:  # type: Field
+        for field in self.__class__.__fields__:  # type: ignore
             if field.name in kwargs:
                 self.__dict__[field.name] = kwargs[field.name]
             elif field.default_factory is not MISSING:
@@ -276,14 +276,13 @@ class BaseClass(metaclass=BaseMetaClass):
 
     def __setattr__(self, key: str, value: Any):
         # noinspection PyUnresolvedReferences
-        if self.__class__.__frozen__:
+        if self.__class__.__frozen__:  # type: ignore
             raise FrozenInstanceError(f"Cannot assign to field {key!r}")
 
         super().__setattr__(key, value)
 
     def __hash__(self) -> int:
-        # noinspection PyUnresolvedReferences
-        if not self.__class__.__frozen__:
+        if not self.__class__.__frozen__:  # type: ignore
             return NotImplemented
 
         return hash(self._as_hash_tuple())
@@ -313,7 +312,7 @@ class BaseClass(metaclass=BaseMetaClass):
     def __repr__(self) -> str:
         inner = ", ".join(
             [
-                f"{field.name}={repr(getattr(self, field.name))}"
+                f"{field.name}={repr(getattr(self, field.name))}"  # type: ignore  # noqa
                 for field in self.get_fields()
                 if field.repr
             ]
@@ -331,7 +330,7 @@ class BaseClass(metaclass=BaseMetaClass):
             if not field.str:
                 continue
 
-            field_value = getattr(self, field.name)
+            field_value = getattr(self, field.name)  # type: ignore
             # Explicitly call str() on elements of collection
             # (instead of repr())
             if isinstance(field_value, tuple):
@@ -367,35 +366,38 @@ class BaseClass(metaclass=BaseMetaClass):
     ):
         """Route pretty repr printing to str instead of repr.
 
-        Adapted from https://stackoverflow.com/a/41454816."""
+        Adapted from https://stackoverflow.com/a/41454816.
+        """
         printer.text(str(self) if not cycle else "...")
 
     def _as_hash_tuple(self) -> Tuple[Any, ...]:
         return tuple(
-            getattr(self, field.name)
+            getattr(self, field.name)  # type: ignore
             for field in self.get_fields()
             if field.hash is None or field.hash
         )
 
     def _as_compare_tuple(self) -> Tuple[Any, ...]:
         return tuple(
-            getattr(self, field.name)
+            getattr(self, field.name)  # type: ignore
             for field in self.get_fields()
             if field.compare is None or field.compare
         )
 
     def as_tuple(self) -> Tuple[Any, ...]:
-        return tuple(getattr(self, field.name) for field in self.get_fields())
+        return tuple(
+            getattr(self, field.name)  # type: ignore
+            for field in self.get_fields()
+        )
 
     def as_dict(self) -> Dict[str, Any]:
         return {
-            field.name: getattr(self, field.name)
+            field.name: getattr(self, field.name)  # type: ignore
             for field in self.get_fields()
         }
 
     def get_fields(self) -> Sequence[Field]:
-        # noinspection PyUnresolvedReferences
-        return self.__class__.__fields__
+        return self.__class__.__fields__  # type: ignore
 
 
 class FrozenBaseClass(BaseClass, frozen=True):
@@ -405,12 +407,11 @@ class FrozenBaseClass(BaseClass, frozen=True):
 def get_combined_metaclass(cls: Type, frozen: bool = False) -> Type:
     base_cls = FrozenBaseClass if frozen else BaseClass
 
-    class CombinedMetaClass(type(base_cls), type(cls)):
+    class CombinedMetaClass(type(base_cls), type(cls)):  # type: ignore
         pass
 
     return CombinedMetaClass
 
 
 def get_fields(cls: Type[BaseClass]) -> Sequence[Field]:
-    # noinspection PyUnresolvedReferences
-    return cls.__fields__
+    return cls.__fields__  # type: ignore

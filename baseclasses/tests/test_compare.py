@@ -81,7 +81,7 @@ def test_defaulting():
 
 class BCKwargs(baseclasses.FrozenBaseClass):
     window: int
-    com: int = baseclasses.Field(
+    com: int = baseclasses.Field(  # type: ignore
         default_factory=lambda **kwargs: kwargs["window"]
     )
 
@@ -164,7 +164,7 @@ def test_change_frozen():
 
     with pytest.raises(dataclasses.FrozenInstanceError):
         dc_frozen_parent = DCFrozenParent(x=1)
-        dc_frozen_parent.x = 2  # noqa
+        dc_frozen_parent.x = 2  # type: ignore # noqa
 
 
 # Advantage 5: Arbitrary pre-init logic, while keeping frozen state

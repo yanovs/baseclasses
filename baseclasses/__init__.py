@@ -4,9 +4,9 @@ from baseclasses.core import (
     BaseClass,
     BaseMetaClass,
     Field,
-    InternalStateField,
     FrozenBaseClass,
     FrozenInstanceError,
+    InternalStateField,
     get_combined_metaclass,
     get_fields,
 )

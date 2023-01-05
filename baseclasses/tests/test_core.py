@@ -19,7 +19,7 @@ class Middle(Parent):
 
 
 class Child(Middle):
-    z: Optional[str] = baseclasses.Field(default="child")
+    z: Optional[str] = baseclasses.Field(default="child")  # type: ignore
     alpha: float
 
 
@@ -57,16 +57,16 @@ def test_basic():
 
 class DefaultFactory(baseclasses.BaseClass):
     x: int
-    y: List[int] = baseclasses.Field(default_factory=list)
-    z: int = baseclasses.Field(
+    y: List[int] = baseclasses.Field(default_factory=list)  # type: ignore
+    z: int = baseclasses.Field(  # type: ignore
         default_factory=lambda **kwargs: kwargs["x"] + 1
     )
 
 
 class DefaultFactoryWithPreInit(baseclasses.BaseClass):
     x: int
-    y: List[Dict] = baseclasses.Field(default_factory=dict)
-    z: int = baseclasses.Field(
+    y: List[Dict] = baseclasses.Field(default_factory=dict)  # type: ignore
+    z: int = baseclasses.Field(  # type: ignore
         default_factory=lambda **kwargs: kwargs["x"] + 1
     )
 
@@ -92,7 +92,7 @@ def test_default_factory():
 class StrClass(baseclasses.BaseClass):
     x: int
     y: str
-    z: int = baseclasses.Field(
+    z: int = baseclasses.Field(  # type: ignore
         default=3, str=False
     )  # str is disabled, but repr is still True
 
@@ -217,7 +217,7 @@ def test_class_vars():
     with pytest.raises(TypeError):
         ClassVars(x=1, y=2, CONSTANT=100)
 
-    obj0.__class__.CONSTANT = 2
+    obj0.__class__.CONSTANT = 2  # pyright: ignore
     assert obj0.CONSTANT == 2
 
     obj1 = ClassVars(x=1, y=2)
@@ -228,10 +228,11 @@ def test_class_vars():
 def test_help():
     help_lines: Sequence[str] = pydoc.render_doc(Parent).splitlines()
     help_signature = help_lines[3].split("Parent")[1]
-    assert (
-        help_signature
-        == "(*, x: int, y: int, z: Optional[str] = 'parent') -> None"
-    )
+    expected_results = [
+        "(*, x: int, y: int, z: Optional[str] = 'parent') -> None",
+        "(*, x: int, y: int, z: Union[str, NoneType] = 'parent') -> None",
+    ]
+    assert help_signature in expected_results
 
 
 class PosArgs(baseclasses.FrozenBaseClass):
