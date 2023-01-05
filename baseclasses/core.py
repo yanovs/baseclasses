@@ -46,7 +46,6 @@ _EMPTY_METADATA: Mapping[str, Any] = types.MappingProxyType({})
 # TODO: Field.hash should return True if that's the default,
 #  instead of being None
 class Field:
-
     __slots__ = (
         "name",
         "type",
