@@ -1,7 +1,7 @@
-import functools
 import pydoc
 from typing import Any, Dict, List, Mapping, MutableMapping, Optional, Sequence
 
+import cached_property
 import pytest
 
 import baseclasses
@@ -189,7 +189,7 @@ def test_hash():
 class CachedProperty(baseclasses.FrozenBaseClass):
     x: int
 
-    @functools.cached_property
+    @cached_property.cached_property
     def y(self) -> int:
         return self.x + 1
 
